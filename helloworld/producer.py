@@ -19,14 +19,8 @@ except Exception as e:
 
 def main():
     channel = connection.channel()
-    channel.exchange_declare(exchange = CONSTANTS.exchange_name, exchange_type = CONSTANTS.exchange_type)
-
-    message = "Drink a coffee to any queue which has been bind to drink-fanout-exchange!"
-    channel.basic_publish(exchange = CONSTANTS.exchange_name, routing_key = "", body = message)
-
-    print("send success")
-
-    channel.close()
+    channel.basic_publish(exchange = "", routing_key = "Hello", body = "Hello rabbitmq!")
+    print("send success!")
     connection.close()
 
 

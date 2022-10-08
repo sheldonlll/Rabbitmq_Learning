@@ -3,25 +3,33 @@ import CONSTANTS
 import pika
 
 
-cridential = pika.PlainCredentials(username = CONSTANTS.username, password = CONSTANTS.password)
-connection = pika.BlockingConnection(pika.ConnectionParameters(host = CONSTANTS.host, 
+try:
+    cridential = pika.PlainCredentials(username = CONSTANTS.username, password = CONSTANTS.password)
+    connection = pika.BlockingConnection(pika.ConnectionParameters(host = CONSTANTS.host, 
                                                             port = CONSTANTS.port, 
                                                             virtual_host = CONSTANTS.virtual_host, 
                                                             credentials = cridential))
+except Exception as e:
+    print("connect to rabbitmq error occured!")
+    print("docker pull rabbitmq:management \n\
+           docker run -di --name myrabbit -e RABBITMQ_DEFAULT_USER=admin -e RABBITMQ_DEFAULT_PASS=admin -p 15672:15672 -p 5672:5672 -p 25672:25672 -p 61613:61613 -p 1883:1883 rabbitmq:management \n\
+           open http://YourIP:15672\n\
+           change CONSTANTS.py's host, username, password")
 
 
 def main():
     channel = connection.channel()
     channel.exchange_declare(exchange = CONSTANTS.exchange_name, exchange_type = CONSTANTS.exchange_type)
 
-    message = "info: hello world!"
-    channel.basic_publish(exchange = CONSTANTS.exchange_name, routing_key = CONSTANTS.routing_key_info, body = message)
+#producer中的routingkey为routingkey
+    message = "coffee! bindingkey = kafei queue only"
+    channel.basic_publish(exchange = CONSTANTS.exchange_name, routing_key = CONSTANTS.routing_key_kafei, body = message)
 
-    message = "warning: world!"
-    channel.basic_publish(exchange = CONSTANTS.exchange_name, routing_key = CONSTANTS.routing_key_warn, body = message)
+    message = "milktea! bindingkey = naicha queue only"
+    channel.basic_publish(exchange = CONSTANTS.exchange_name, routing_key = CONSTANTS.routing_key_naicha, body = message)
 
-    message = "error: !"
-    channel.basic_publish(exchange = CONSTANTS.exchange_name, routing_key = CONSTANTS.routing_key_error, body = message)
+    message = "juice! bindingkey = guozhi queue only"
+    channel.basic_publish(exchange = CONSTANTS.exchange_name, routing_key = CONSTANTS.routing_key_guozhi, body = message)
 
 
     print("send success")

@@ -1,5 +1,5 @@
+from subprocess import call
 import sys, os
-from multiprocessing import Process
 import CONSTANTS
 import pika
 
@@ -16,18 +16,16 @@ except Exception as e:
            docker run -di --name myrabbit -e RABBITMQ_DEFAULT_USER=admin -e RABBITMQ_DEFAULT_PASS=admin -p 15672:15672 -p 5672:5672 -p 25672:25672 -p 61613:61613 -p 1883:1883 rabbitmq:management \n\
            open http://YourIP:15672\n\
            change CONSTANTS.py's host, username, password")
+        
 
-
-def receive_msg(queue_name):
+def main():
     channel = connection.channel()
-    channel.exchange_declare(exchange = CONSTANTS.exchange_name, exchange_type = CONSTANTS.exchange_type)
-    channel.queue_declare(queue = queue_name, durable = True, exclusive = False, auto_delete = False, arguments = None) # 是否排他，即是否私有的，如果为true,会对当前队列加锁，其他的通道不能访问，并且连接自动关闭
-    channel.queue_bind(exchange = CONSTANTS.exchange_name, queue = queue_name) # 将queue绑定到交换机
-
+    channel.queue_declare(queue = "Hello", durable = True, exclusive = False, auto_delete = False, arguments = None)
     def call_back(channel, method, properties, message):
         print(f"received message: {message}")
-    
-    channel.basic_consume(queue = queue_name, on_message_callback = call_back, auto_ack = True) #收到消息就删除
+
+    channel.basic_consume(queue = "Hello", on_message_callback = call_back, auto_ack = True)
+    print("start consuming")
     
     try:
         channel.start_consuming()
@@ -35,21 +33,6 @@ def receive_msg(queue_name):
         print("ctrl + c pressed")
         channel.stop_consuming()
 
-
-def main():
-    queue_name = input("input consumer's queue name(coffee, milktea, juice)：")
-
-    queue_name_to_binding_key_dict = {CONSTANTS.queue_name_coffee: CONSTANTS.binding_key_kafei, 
-                                    CONSTANTS.queue_name_milktea: CONSTANTS.binding_key_naicha,
-                                    CONSTANTS.queue_name_juice: CONSTANTS.binding_key_guozhi}
-    
-    while queue_name_to_binding_key_dict.get(queue_name) == None:
-        queue_name = input("reinput consumer's queue name(coffee, milktea, juice)!：")
-    
-    print("receiving message! (ctrl + c to stop)")
-    receive_msg(queue_name = queue_name)
-    
-    connection.close()
 
 if __name__ == "__main__":
     try:
