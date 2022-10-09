@@ -20,13 +20,12 @@ except Exception as e:
 
 def receive_msg(queue_name):
     channel = connection.channel()
-    channel.exchange_declare(exchange = CONSTANTS.exchange_name, exchange_type = CONSTANTS.exchange_type)
     channel.queue_declare(queue = queue_name, durable = True, exclusive = False, auto_delete = False, arguments = None) # 是否排他，即是否私有的，如果为true,会对当前队列加锁，其他的通道不能访问，并且连接自动关闭
-    channel.queue_bind(exchange = CONSTANTS.exchange_name, queue = queue_name) # 将queue绑定到交换机
 
     def call_back(channel, method, properties, message):
-        print(f"received message: {message}")
+        print(f"consumer1-received message: {message}")
     
+    #auto_ack = true 消费者自动向rabbitmq确认消息消费
     channel.basic_consume(queue = queue_name, on_message_callback = call_back, auto_ack = True) #收到消息就删除
     
     try:
@@ -37,18 +36,7 @@ def receive_msg(queue_name):
 
 
 def main():
-    queue_name = input("input consumer's queue name(coffee, milktea, juice)：")
-
-    queue_name_to_binding_key_dict = {CONSTANTS.queue_name_coffee: CONSTANTS.binding_key_kafei, 
-                                    CONSTANTS.queue_name_milktea: CONSTANTS.binding_key_naicha,
-                                    CONSTANTS.queue_name_juice: CONSTANTS.binding_key_guozhi}
-    
-    while queue_name_to_binding_key_dict.get(queue_name) == None:
-        queue_name = input("reinput consumer's queue name(coffee, milktea, juice)!：")
-    
-    print("receiving message! (ctrl + c to stop)")
-    receive_msg(queue_name = queue_name)
-    
+    receive_msg(queue_name = "worker")
     connection.close()
 
 

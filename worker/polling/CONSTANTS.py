@@ -1,0 +1,5 @@
+username = "admin"
+password = "admin"
+host  = "192.168.31.100"
+port = "5672"
+virtual_host = "/"
