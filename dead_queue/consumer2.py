@@ -1,3 +1,4 @@
+from enum import auto
 import sys, os
 from multiprocessing import Process
 import CONSTANTS
@@ -18,15 +19,15 @@ open http://YourIP:15672\n\
 change CONSTANTS.py's host, username, password")
 
 
+
 def receive_msg(queue_name):
     channel = connection.channel()
-    channel.queue_declare(queue = queue_name, durable = True, exclusive = False, auto_delete = False, arguments = None) # 是否排他，即是否私有的，如果为true,会对当前队列加锁，其他的通道不能访问，并且连接自动关闭
 
-    def call_back(channel, method, properties, message):
+    def call_back(channel, method_frame, properties, message):
         print(f"consumer2-received message: {message}")
-    
-    channel.basic_consume(queue = queue_name, on_message_callback = call_back, auto_ack = True) #收到消息就删除
-    
+
+    channel.basic_consume(queue = queue_name, on_message_callback = call_back, auto_ack = True)
+
     try:
         channel.start_consuming()
     except KeyboardInterrupt:
@@ -35,7 +36,7 @@ def receive_msg(queue_name):
 
 
 def main():
-    receive_msg(queue_name = "worker")
+    receive_msg(queue_name = CONSTANTS.dead_queue)
     connection.close()
 
 

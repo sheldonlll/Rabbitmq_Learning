@@ -1,3 +1,4 @@
+from enum import auto
 import sys, os
 from multiprocessing import Process
 import CONSTANTS
@@ -21,18 +22,30 @@ change CONSTANTS.py's host, username, password")
 
 def receive_msg(queue_name):
     channel = connection.channel()
-    channel.basic_qos(prefetch_count = 1) # 每次只消费一个消息
-    channel.queue_declare(queue = queue_name, durable = True, exclusive = False, auto_delete = False, arguments = None) # 是否排他，即是否私有的，如果为true,会对当前队列加锁，其他的通道不能访问，并且连接自动关闭
+
+    channel.exchange_declare(exchange = CONSTANTS.dead_exchange, exchange_type = CONSTANTS.dead_exchange_type, durable = True,
+                             auto_delete = False, arguments = None)
+    channel.exchange_declare(exchange = CONSTANTS.normal_exchange, exchange_type = CONSTANTS.normal_exchange_type, durable = True,
+                             auto_delete = False, arguments = None)
+
+    channel.queue_declare(queue = CONSTANTS.dead_queue, durable = True, exclusive = False, auto_delete = False, arguments = None)
+    
+
+    channel.queue_declare(queue = CONSTANTS.normal_queue, durable = True, exclusive = False, auto_delete = False, 
+                          arguments = {
+                                # "x-message-ttl": 10000, # 10s
+                                "x-dead-letter-exchange": CONSTANTS.dead_exchange,
+                                "x-dead-letter-routing-key": CONSTANTS.dead_exchange_queue_binding_key
+                            })
+
+
+    channel.queue_bind(queue = CONSTANTS.normal_queue, exchange = CONSTANTS.normal_exchange, routing_key = CONSTANTS.normal_exchange_queue_binding_key)
+    channel.queue_bind(queue = CONSTANTS.dead_queue, exchange = CONSTANTS.dead_exchange, routing_key = CONSTANTS.dead_exchange_queue_binding_key)
 
     def call_back(channel, method_frame, properties, message):
-        for _ in range(999999): pass # 模拟worker queue延时
         print(f"consumer1-received message: {message}")
-        #delivery_tag: 确认队列中哪个具体消息，multiple：是否开启多个消息同时确认
-        channel.basic_ack(delivery_tag = method_frame.delivery_tag, multiple = False)
 
-
-    #关闭消息确认
-    channel.basic_consume(queue = queue_name, on_message_callback = call_back, auto_ack = False)
+    channel.basic_consume(queue = queue_name, on_message_callback = call_back, auto_ack = True)
 
     try:
         channel.start_consuming()
@@ -42,7 +55,7 @@ def receive_msg(queue_name):
 
 
 def main():
-    receive_msg(queue_name = "worker")
+    receive_msg(queue_name = CONSTANTS.normal_queue)
     connection.close()
 
 

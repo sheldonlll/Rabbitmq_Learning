@@ -1,0 +1,15 @@
+username = "admin"
+password = "admin"
+host  = "192.168.31.100"
+port = "5672"
+virtual_host = "/"
+
+normal_exchange = "normal-exchange"
+normal_exchange_type = "direct"
+normal_queue = "normal-queue"
+normal_exchange_queue_binding_key = "zhangshan"
+
+dead_exchange = "dead_exchange"
+dead_exchange_type = "direct"
+dead_queue = "dead_queue"
+dead_exchange_queue_binding_key = "lisi"
