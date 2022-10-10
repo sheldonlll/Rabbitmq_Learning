@@ -28,10 +28,11 @@ def receive_msg(queue_name):
     channel.exchange_declare(exchange = CONSTANTS.normal_exchange, exchange_type = CONSTANTS.normal_exchange_type, durable = True,
                              auto_delete = False, arguments = None)
 
-    channel.queue_declare(queue = CONSTANTS.dead_queue, durable = True, exclusive = False, auto_delete = False, arguments = None)
+    channel.queue_declare(queue = CONSTANTS.dead_queue, durable = False, exclusive = False, auto_delete = False, arguments = None)
+    channel.queue_bind(queue = CONSTANTS.dead_queue, exchange = CONSTANTS.dead_exchange, routing_key = CONSTANTS.dead_exchange_queue_binding_key)
     
 
-    channel.queue_declare(queue = CONSTANTS.normal_queue, durable = True, exclusive = False, auto_delete = False, 
+    channel.queue_declare(queue = CONSTANTS.normal_queue, durable = False, exclusive = False, auto_delete = False, 
                           arguments = {
                                 # "x-message-ttl": 10000, # 10s
                                 "x-dead-letter-exchange": CONSTANTS.dead_exchange,
@@ -40,7 +41,6 @@ def receive_msg(queue_name):
 
 
     channel.queue_bind(queue = CONSTANTS.normal_queue, exchange = CONSTANTS.normal_exchange, routing_key = CONSTANTS.normal_exchange_queue_binding_key)
-    channel.queue_bind(queue = CONSTANTS.dead_queue, exchange = CONSTANTS.dead_exchange, routing_key = CONSTANTS.dead_exchange_queue_binding_key)
 
     def call_back(channel, method_frame, properties, message):
         print(f"consumer1-received message: {message}")

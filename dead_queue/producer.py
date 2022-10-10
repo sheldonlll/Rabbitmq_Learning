@@ -23,8 +23,8 @@ def main():
     for i in range(10):
         time.sleep(1)
         channel.basic_publish(exchange = CONSTANTS.normal_exchange, routing_key = CONSTANTS.normal_exchange_queue_binding_key, 
-                              properties=pika.BasicProperties(expiration="1"),
-                              body = str(i) + " " + message)
+                              properties=pika.BasicProperties(expiration="10000"),
+                              body = str(i + 1) + " " + message)
 
     print("send success")
     connection.close()

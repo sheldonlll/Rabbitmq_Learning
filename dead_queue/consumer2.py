@@ -23,6 +23,11 @@ change CONSTANTS.py's host, username, password")
 def receive_msg(queue_name):
     channel = connection.channel()
 
+    channel.exchange_declare(exchange = CONSTANTS.dead_exchange, exchange_type = CONSTANTS.dead_exchange_type, durable = True,
+                             auto_delete = False, arguments = None)
+    channel.queue_declare(queue = CONSTANTS.dead_queue, durable = False, exclusive = False, auto_delete = False, arguments = None)
+    channel.queue_bind(queue = CONSTANTS.dead_queue, exchange = CONSTANTS.dead_exchange, routing_key = CONSTANTS.dead_exchange_queue_binding_key)
+
     def call_back(channel, method_frame, properties, message):
         print(f"consumer2-received message: {message}")
 
